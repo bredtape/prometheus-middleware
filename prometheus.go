@@ -13,6 +13,7 @@ import (
 
 var (
 	defaultBuckets = []float64{0.3, 1.0, 2.5, 5.0}
+	labelKeys      = []string{"code", "method", "path"}
 )
 
 const (
@@ -54,26 +55,17 @@ func NewPrometheusMiddleware(opts Opts) (*PrometheusMiddleware, error) {
 		prometheus.CounterOpts{
 			Name: requestName,
 			Help: "How many HTTP requests processed, partitioned by status code, method and HTTP path.",
-		},
-		[]string{"code", "method", "path"},
-	)
+		}, labelKeys)
 
 	if err := opts.Registerer.Register(request); err != nil {
 		return nil, errors.Wrap(err, "failed to register metric "+requestName)
 	}
 
-	buckets := opts.Buckets
-	if len(buckets) == 0 {
-		buckets = defaultBuckets
-	}
-
 	latency := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    latencyName,
 		Help:    "How long it took to process the request, partitioned by status code, method and HTTP path.",
-		Buckets: buckets,
-	},
-		[]string{"code", "method", "path"},
-	)
+		Buckets: opts.Buckets},
+		labelKeys)
 
 	if err := opts.Registerer.Register(latency); err != nil {
 		return nil, errors.Wrap(err, "failed to register metric "+latencyName)
