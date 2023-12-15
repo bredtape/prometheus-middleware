@@ -1,13 +1,13 @@
 package prometheusmiddleware
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -33,10 +33,9 @@ type PrometheusMiddleware struct {
 }
 
 // NewPrometheusMiddleware creates a new PrometheusMiddleware instance
-func NewPrometheusMiddleware(opts Opts) *PrometheusMiddleware {
-	var prometheusMiddleware PrometheusMiddleware
+func NewPrometheusMiddleware(opts Opts) (*PrometheusMiddleware, error) {
 
-	prometheusMiddleware.request = prometheus.NewCounterVec(
+	request := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: requestName,
 			Help: "How many HTTP requests processed, partitioned by status code, method and HTTP path.",
@@ -44,8 +43,8 @@ func NewPrometheusMiddleware(opts Opts) *PrometheusMiddleware {
 		[]string{"code", "method", "path"},
 	)
 
-	if err := prometheus.Register(prometheusMiddleware.request); err != nil {
-		log.Println("prometheusMiddleware.request was not registered:", err)
+	if err := prometheus.Register(request); err != nil {
+		return nil, errors.Wrap(err, "failed to register metric "+requestName)
 	}
 
 	buckets := opts.Buckets
@@ -53,7 +52,7 @@ func NewPrometheusMiddleware(opts Opts) *PrometheusMiddleware {
 		buckets = dflBuckets
 	}
 
-	prometheusMiddleware.latency = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	latency := prometheus.NewHistogramVec(prometheus.HistogramOpts{
 		Name:    latencyName,
 		Help:    "How long it took to process the request, partitioned by status code, method and HTTP path.",
 		Buckets: buckets,
@@ -61,11 +60,13 @@ func NewPrometheusMiddleware(opts Opts) *PrometheusMiddleware {
 		[]string{"code", "method", "path"},
 	)
 
-	if err := prometheus.Register(prometheusMiddleware.latency); err != nil {
-		log.Println("prometheusMiddleware.latency was not registered:", err)
+	if err := prometheus.Register(latency); err != nil {
+		return nil, errors.Wrap(err, "failed to register metric "+latencyName)
 	}
 
-	return &prometheusMiddleware
+	return &PrometheusMiddleware{
+		request: request,
+		latency: latency}, nil
 }
 
 // InstrumentHandlerDuration is a middleware that wraps the http.Handler and it record
