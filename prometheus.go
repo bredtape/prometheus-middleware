@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	dflBuckets = []float64{0.3, 1.0, 2.5, 5.0}
+	defaultBuckets = []float64{0.3, 1.0, 2.5, 5.0}
 )
 
 const (
@@ -25,8 +25,18 @@ type Opts struct {
 	// Buckets specifies an custom buckets to be used in request histograpm.
 	Buckets []float64
 
-	// Prometheus registry. Specify to not use the default
-	Registry *prometheus.Registry
+	// Prometheus register. Specify to not use the default
+	Registerer prometheus.Registerer
+}
+
+func (o Opts) WithDefaults() Opts {
+	if len(o.Buckets) == 0 {
+		o.Buckets = defaultBuckets
+	}
+	if o.Registerer == nil {
+		o.Registerer = prometheus.DefaultRegisterer
+	}
+	return o
 }
 
 // PrometheusMiddleware specifies the metrics that is going to be generated
@@ -38,10 +48,7 @@ type PrometheusMiddleware struct {
 // NewPrometheusMiddleware creates a new PrometheusMiddleware instance
 func NewPrometheusMiddleware(opts Opts) (*PrometheusMiddleware, error) {
 
-	reg := prometheus.DefaultRegisterer
-	if opts.Registry != nil {
-		reg = opts.Registry
-	}
+	opts = opts.WithDefaults()
 
 	request := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -51,13 +58,13 @@ func NewPrometheusMiddleware(opts Opts) (*PrometheusMiddleware, error) {
 		[]string{"code", "method", "path"},
 	)
 
-	if err := reg.Register(request); err != nil {
+	if err := opts.Registerer.Register(request); err != nil {
 		return nil, errors.Wrap(err, "failed to register metric "+requestName)
 	}
 
 	buckets := opts.Buckets
 	if len(buckets) == 0 {
-		buckets = dflBuckets
+		buckets = defaultBuckets
 	}
 
 	latency := prometheus.NewHistogramVec(prometheus.HistogramOpts{
@@ -68,7 +75,7 @@ func NewPrometheusMiddleware(opts Opts) (*PrometheusMiddleware, error) {
 		[]string{"code", "method", "path"},
 	)
 
-	if err := reg.Register(latency); err != nil {
+	if err := opts.Registerer.Register(latency); err != nil {
 		return nil, errors.Wrap(err, "failed to register metric "+latencyName)
 	}
 
