@@ -87,13 +87,13 @@ func (p *PrometheusMiddleware) InstrumentHandlerDuration(next http.Handler) http
 		code := sanitizeCode(delegate.status)
 		method := sanitizeMethod(r.Method)
 
-		go p.request.WithLabelValues(
+		p.request.WithLabelValues(
 			code,
 			method,
 			path,
 		).Inc()
 
-		go p.latency.WithLabelValues(
+		p.latency.WithLabelValues(
 			code,
 			method,
 			path,
