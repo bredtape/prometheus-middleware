@@ -31,11 +31,11 @@ func Test_InstrumentGorillaMux(t *testing.T) {
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
-	req1, err := http.NewRequest("GET", ts.URL+"/", nil)
+	req1, err := http.NewRequest(http.MethodGet, ts.URL+"/", nil)
 	if err != nil {
 		t.Error(err)
 	}
-	req2, err := http.NewRequest("GET", ts.URL+"/metrics", nil)
+	req2, err := http.NewRequest(http.MethodGet, ts.URL+"/metrics", nil)
 	if err != nil {
 		t.Error(err)
 	}
