@@ -24,6 +24,9 @@ const (
 type Opts struct {
 	// Buckets specifies an custom buckets to be used in request histograpm.
 	Buckets []float64
+
+	// Prometheus registry. Specify to not use the default
+	Registry *prometheus.Registry
 }
 
 // PrometheusMiddleware specifies the metrics that is going to be generated
@@ -35,6 +38,11 @@ type PrometheusMiddleware struct {
 // NewPrometheusMiddleware creates a new PrometheusMiddleware instance
 func NewPrometheusMiddleware(opts Opts) (*PrometheusMiddleware, error) {
 
+	reg := prometheus.DefaultRegisterer
+	if opts.Registry != nil {
+		reg = opts.Registry
+	}
+
 	request := prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: requestName,
@@ -43,7 +51,7 @@ func NewPrometheusMiddleware(opts Opts) (*PrometheusMiddleware, error) {
 		[]string{"code", "method", "path"},
 	)
 
-	if err := prometheus.Register(request); err != nil {
+	if err := reg.Register(request); err != nil {
 		return nil, errors.Wrap(err, "failed to register metric "+requestName)
 	}
 
@@ -60,7 +68,7 @@ func NewPrometheusMiddleware(opts Opts) (*PrometheusMiddleware, error) {
 		[]string{"code", "method", "path"},
 	)
 
-	if err := prometheus.Register(latency); err != nil {
+	if err := reg.Register(latency); err != nil {
 		return nil, errors.Wrap(err, "failed to register metric "+latencyName)
 	}
 
