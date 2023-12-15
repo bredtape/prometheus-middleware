@@ -1,4 +1,4 @@
-module github.com/albertogviana/prometheus-middleware
+module github.com/bredtape/prometheus-middleware
 
 go 1.14
 
