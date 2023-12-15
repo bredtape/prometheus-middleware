@@ -1,11 +1,11 @@
-# prometheus-middleware [![Build Status](https://travis-ci.org/albertogviana/prometheus-middleware.svg?branch=master)](https://travis-ci.org/albertogviana/prometheus-middleware) [![Go Report Card](https://goreportcard.com/badge/github.com/albertogviana/prometheus-middleware)](https://goreportcard.com/report/github.com/albertogviana/prometheus-middleware)
+# prometheus-middleware
 
 [Prometheus](http://prometheus.io) middleware supports only [gorilla/mux](https://github.com/gorilla/mux).
 
 ## Installation
 
 ```bash
-go get -u github.com/albertogviana/prometheus-middleware
+go get -u github.com/bredtape/prometheus-middleware
 ```
 
 ## What you will get
