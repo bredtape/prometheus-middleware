@@ -97,7 +97,7 @@ func (p *PrometheusMiddleware) InstrumentHandlerDuration(next http.Handler) http
 			code,
 			method,
 			path,
-		).Observe(float64(time.Since(begin)) / float64(time.Second))
+		).Observe(time.Since(begin).Seconds())
 	})
 }
 
