@@ -1,6 +1,6 @@
 # prometheus-middleware
 
-[Prometheus](http://prometheus.io) middleware supports only [gorilla/mux](https://github.com/gorilla/mux).
+[Prometheus](http://prometheus.io) middleware for [gorilla/mux](https://github.com/gorilla/mux).
 
 ## Installation
 
